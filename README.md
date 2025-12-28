@@ -15,7 +15,11 @@
 ## 📖 Documentation
 
 - **[Quick Start](#-quick-start)** - Get started in 5 minutes
-- **[Cursor Integration](CURSOR_INTEGRATION.md)** - Use the agent in Cursor IDE
+- **[Quick Start Guide](QUICK_START.md)** - Step-by-step server startup guide
+- **[Cursor Integration](CURSOR_INTEGRATION.md)** - Use the agent in Cursor IDE (all methods)
+- **[MCP Documentation](MCP_DOCUMENTATION.md)** - Complete MCP server guide
+- **[API Documentation](API_DOCUMENTATION.md)** - Complete REST API reference
+- **[Tools Reference](TOOLS_REFERENCE.md)** - Detailed reference for all 65 tools
 - **[Releases](RELEASES.md)** - Release management and versioning
 - **[Changelog](CHANGELOG.md)** - Version history and changes
 
@@ -93,7 +97,30 @@ DATABRICKS_TOKEN=your_databricks_token_here
 
 ### 4. Run the Agent
 
-#### Option A: Using ADK Web Interface (Recommended)
+#### Option A: REST API Server (Recommended for Team Use)
+
+Start the FastAPI server:
+
+```bash
+cd data-engineering-copilot
+./scripts/start_api_server.sh
+# Or: python api_server.py
+```
+
+Access the API:
+- **API Docs (Swagger)**: http://localhost:8000/docs
+- **Health Check**: http://localhost:8000/health
+- **ReDoc**: http://localhost:8000/redoc
+
+**Quick test:**
+```bash
+curl http://localhost:8000/health
+curl http://localhost:8000/tools/list
+```
+
+See [API_DOCUMENTATION.md](API_DOCUMENTATION.md) for complete API reference.
+
+#### Option B: Using ADK Web Interface
 
 ```bash
 cd data-engineering-copilot
@@ -102,14 +129,11 @@ adk web
 
 This will start a web server (usually at `http://localhost:8080`) where you can interact with the agent through a chat interface.
 
-#### Option B: Using ADK CLI
+#### Option C: MCP Server (For Cursor Integration)
 
-```bash
-cd data-engineering-copilot
-adk run data_engineering_copilot
-```
+Configure the MCP server in Cursor to use the copilot directly. See [MCP_DOCUMENTATION.md](MCP_DOCUMENTATION.md) for setup.
 
-#### Option C: Programmatic Usage
+#### Option D: Programmatic Usage
 
 ```python
 from data_engineering_copilot.agent import root_agent
@@ -117,6 +141,13 @@ from data_engineering_copilot.agent import root_agent
 # Use the agent in your code
 response = root_agent.run("Create a new Dataform source for Apple Ads")
 print(response)
+```
+
+#### Option E: Using ADK CLI
+
+```bash
+cd data-engineering-copilot
+adk run data_engineering_copilot
 ```
 
 ### 5. Verify Installation
@@ -583,9 +614,19 @@ See [RELEASES.md](RELEASES.md) for detailed instructions.
 
 ## 📚 Additional Resources
 
+### Documentation
+- **[Cursor Integration](CURSOR_INTEGRATION.md)** - Use the agent in Cursor IDE (all methods)
+- **[MCP Documentation](MCP_DOCUMENTATION.md)** - Complete MCP server guide for Cursor
+- **[API Documentation](API_DOCUMENTATION.md)** - Complete API reference with examples (curl, Python, Postman)
+- **[Tools Reference](TOOLS_REFERENCE.md)** - Detailed reference for all 65 tools
+- **[Releases](RELEASES.md)** - Release management guide
+- **[Changelog](CHANGELOG.md)** - Version history
+
+### External Resources
 - [ADK Documentation](https://google.github.io/adk-docs/)
 - [Dataform Documentation](https://cloud.google.com/dataform/docs)
 - [Dataform API Reference](https://cloud.google.com/dataform/docs/reference/rest)
 - [Dataform Core Reference](https://cloud.google.com/dataform/docs/reference/dataform-core)
 - [dbt Documentation](https://docs.getdbt.com/)
 - [Dataproc Documentation](https://cloud.google.com/dataproc/docs)
+- [Databricks Documentation](https://docs.databricks.com/)

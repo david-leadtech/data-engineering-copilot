@@ -5,7 +5,7 @@
 
 set -e
 
-REPO_NAME="dataform-github-agent"
+REPO_NAME="data-engineering-copilot"
 ORG_NAME="david-leadtech"
 FULL_REPO="${ORG_NAME}/${REPO_NAME}"
 
@@ -89,7 +89,7 @@ echo -e "${YELLOW}Step 5: Creating initial commit...${NC}"
 if git diff --cached --quiet; then
     echo -e "  ${YELLOW}⚠️${NC}  No changes to commit"
 else
-    git commit -m "Initial commit: Dataform GitHub Agent with dbt and PySpark support
+    git commit -m "Initial commit: Data Engineering Copilot with Dataform, dbt, PySpark, and GitHub integration
 
 - Comprehensive Dataform pipeline management
 - Full dbt support (run, test, compile, docs, seed, snapshot, etc.)

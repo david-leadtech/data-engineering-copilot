@@ -3,11 +3,11 @@
 # Script to create GitHub repository in david-leadtech organization
 # Usage: ./create_repo.sh
 
-echo "Creating repository 'dataform-github-agent' in david-leadtech organization..."
+echo "Creating repository 'data-engineering-copilot' in david-leadtech organization..."
 
-gh repo create david-leadtech/dataform-github-agent \
+gh repo create david-leadtech/data-engineering-copilot \
   --public \
-  --description "AI-powered data engineering agent with Dataform, dbt, PySpark/Dataproc, and GitHub integration" \
+  --description "AI-powered data engineering copilot with Dataform, dbt, PySpark/Dataproc/Databricks, and GitHub integration" \
   --clone=false \
   --add-readme=false \
   --gitignore=Python \
@@ -16,15 +16,15 @@ gh repo create david-leadtech/dataform-github-agent \
 if [ $? -eq 0 ]; then
   echo ""
   echo "✅ Repository created successfully!"
-  echo "   URL: https://github.com/david-leadtech/dataform-github-agent"
+  echo "   URL: https://github.com/david-leadtech/data-engineering-copilot"
   echo ""
   echo "Next steps:"
   echo "1. Initialize git in this directory:"
   echo "   cd $(pwd)"
   echo "   git init"
-  echo "   git remote add origin https://github.com/david-leadtech/dataform-github-agent.git"
+  echo "   git remote add origin https://github.com/david-leadtech/data-engineering-copilot.git"
   echo "   git add ."
-  echo "   git commit -m 'Initial commit: Dataform GitHub Agent with dbt and PySpark support'"
+  echo "   git commit -m 'Initial commit: Data Engineering Copilot with Dataform, dbt, PySpark, and GitHub integration'"
   echo "   git push -u origin main"
 else
   echo ""

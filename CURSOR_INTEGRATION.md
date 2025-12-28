@@ -19,7 +19,7 @@ print(response)
 
 1. **Install the agent in editable mode:**
    ```bash
-   cd analytics/adk-agents-reference/dataform-github-agent
+   cd analytics/adk-agents-reference/data-engineering-copilot
    pip install -e .
    ```
 
@@ -50,7 +50,7 @@ Run the agent as a local web server and interact with it through a browser:
 
 1. **Install dependencies:**
    ```bash
-   cd analytics/adk-agents-reference/dataform-github-agent
+   cd analytics/adk-agents-reference/data-engineering-copilot
    pip install -r requirements.txt
    ```
 
@@ -74,62 +74,92 @@ Run the agent as a local web server and interact with it through a browser:
 
 ## 🔌 Option 3: MCP Server (Advanced - For Cursor AI Integration)
 
-Create an MCP (Model Context Protocol) server to expose the agent's tools directly to Cursor's AI.
+The MCP server is **already implemented**! It exposes the agent's tools directly to Cursor's AI.
 
-### Create MCP Server
+**📖 For complete MCP documentation, see [MCP_DOCUMENTATION.md](MCP_DOCUMENTATION.md)**
 
-1. **Create MCP server file:**
-   ```python
-   # tools/data-engineering-copilot-mcp/server.py
-   from mcp.server import Server
-   from data_engineering_copilot.agent import root_agent
-   
-   server = Server("data-engineering-copilot")
-   
-   @server.tool()
-   async def run_agent_task(prompt: str) -> str:
-       """Run a data engineering task using the Dataform GitHub Agent."""
-       response = root_agent.run(prompt)
-       return str(response)
+### Quick Setup
+
+1. **Install dependencies:**
+   ```bash
+   cd analytics/adk-agents-reference/data-engineering-copilot
+   pip install -r requirements.txt
    ```
 
-2. **Configure in Cursor's MCP settings:**
+2. **Configure in Cursor:**
+   
+   Open `~/.cursor/mcp.json` and add:
    ```json
    {
      "mcpServers": {
        "data-engineering-copilot": {
          "command": "python",
-         "args": ["tools/data-engineering-copilot-mcp/server.py"]
+         "args": ["/absolute/path/to/data-engineering-copilot/mcp_server.py"]
        }
      }
    }
    ```
+   
+   **Get the path:**
+   ```bash
+   cd analytics/adk-agents-reference/data-engineering-copilot
+   pwd  # Copy this path
+   ```
 
-3. **Use in Cursor:**
-   - Cursor's AI can now call the copilot directly
+3. **Restart Cursor** and use:
    - Ask Cursor: "Use the data engineering copilot to create a new source"
+   - Cursor's AI can now call the copilot directly
+
+**See [MCP_DOCUMENTATION.md](MCP_DOCUMENTATION.md) for:**
+- Complete setup guide
+- Configuration examples
+- Troubleshooting
+- Usage examples
+- Advanced configuration
 
 ## 📡 Option 4: REST API Server (For Team Use)
 
-Create a simple FastAPI server to expose the agent as an API:
+The REST API server is **already implemented**! It exposes the agent as a FastAPI service.
 
-```python
-# api_server.py
-from fastapi import FastAPI
-from data_engineering_copilot.agent import root_agent
+### Setup API Server
 
-app = FastAPI()
+1. **Install dependencies:**
+   ```bash
+   cd analytics/adk-agents-reference/data-engineering-copilot
+   pip install -r requirements.txt
+   ```
 
-@app.post("/agent/run")
-async def run_agent(prompt: str):
-    response = root_agent.run(prompt)
-    return {"response": str(response)}
-```
+2. **Start the server:**
+   ```bash
+   ./scripts/start_api_server.sh
+   ```
+   
+   Or directly:
+   ```bash
+   python api_server.py
+   ```
 
-Run with:
-```bash
-uvicorn api_server:app --reload
-```
+3. **Access the API:**
+   - API Docs: http://localhost:8000/docs
+   - Health Check: http://localhost:8000/health
+   - Run Agent: POST http://localhost:8000/agent/run
+
+4. **Example usage:**
+   ```bash
+   curl -X POST http://localhost:8000/agent/run \
+     -H 'Content-Type: application/json' \
+     -d '{"prompt": "Check the health of the PLTV pipeline"}'
+   ```
+
+5. **For async execution:**
+   ```bash
+   curl -X POST http://localhost:8000/agent/run \
+     -H 'Content-Type: application/json' \
+     -d '{"prompt": "Create a new Dataform source", "async_execution": true}'
+   
+   # Then check status:
+   curl http://localhost:8000/agent/status/{task_id}
+   ```
 
 ## 🔧 Configuration for Local Use
 
@@ -228,7 +258,7 @@ if __name__ == "__main__":
 
 1. **Install the agent:**
    ```bash
-   cd analytics/adk-agents-reference/dataform-github-agent
+   cd analytics/adk-agents-reference/data-engineering-copilot
    pip install -e .
    ```
 

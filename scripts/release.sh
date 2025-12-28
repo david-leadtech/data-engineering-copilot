@@ -129,7 +129,7 @@ gh release create "v${NEW_VERSION}" \
     --target main || {
     echo -e "${YELLOW}⚠️  GitHub release creation failed (may need manual creation)${NC}"
     echo -e "${BLUE}You can create it manually at:${NC}"
-    echo -e "${BLUE}https://github.com/david-leadtech/dataform-github-agent/releases/new${NC}"
+    echo -e "${BLUE}https://github.com/david-leadtech/data-engineering-copilot/releases/new${NC}"
 }
 
 echo ""
@@ -137,5 +137,5 @@ echo -e "${GREEN}========================================"
 echo -e "✅ Release v${NEW_VERSION} completed!${NC}"
 echo -e "${GREEN}========================================"
 echo ""
-echo "Release URL: https://github.com/david-leadtech/dataform-github-agent/releases/tag/v${NEW_VERSION}"
+echo "Release URL: https://github.com/david-leadtech/data-engineering-copilot/releases/tag/v${NEW_VERSION}"
 
