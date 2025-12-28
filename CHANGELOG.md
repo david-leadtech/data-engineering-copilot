@@ -39,84 +39,104 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Initial release of Data Engineering Copilot (formerly Dataform GitHub Agent)
 
-- **Dataform Integration (15 tools)**
-  - `read_file_from_dataform`: Read files from Dataform workspace
-  - `write_file_to_dataform`: Write/modify SQLX files
-  - `compile_dataform`: Compile pipeline and view DAG
-  - `get_dataform_execution_logs`: Get execution logs
-  - `search_files_in_dataform`: Search files in workspace
-  - `delete_file_from_dataform`: Delete files from workspace
-  - `get_dataform_repo_link`: Get repository link
-  - `execute_dataform_workflow`: Execute workflow by name
-  - `execute_dataform_by_tags`: Execute actions filtered by tags
-  - `read_workflow_settings`: Read workflow configuration
-  - `get_workflow_status`: Check workflow execution status
-  - `monitor_workflow_health`: Monitor workflow execution health over time
-  - `get_failed_workflows`: Get list of failed workflows with error details
-  - `check_pipeline_health`: Check overall pipeline health status
-  - `generate_pipeline_documentation`: Automatically generate comprehensive pipeline documentation
-  - `analyze_assertion_results`: Analyze data quality assertion results
-  - `check_data_quality_anomalies`: Detect data quality issues and trends
+#### Complete Tool Inventory (62 tools)
 
-- **dbt Integration (14 tools)**
-  - `dbt_run`: Execute dbt models (with selectors, tags, or specific models)
-  - `dbt_test`: Run data quality tests
-  - `dbt_compile`: Compile dbt project without executing (validation)
-  - `dbt_build`: Run models and tests in a single operation
-  - `dbt_docs_generate`: Generate dbt documentation (manifest.json, catalog.json)
-  - `dbt_docs_serve`: Serve dbt documentation locally
-  - `dbt_seed`: Load seed data from CSV files
-  - `dbt_snapshot`: Run snapshots for SCD Type 2 tracking
-  - `dbt_ls`: List dbt resources (models, tests, seeds, etc.)
-  - `dbt_show`: Preview compiled SQL without executing
-  - `dbt_debug`: Debug dbt project and profile configuration
-  - `dbt_deps`: Install dbt package dependencies
-  - `dbt_run_operation`: Execute custom dbt macros
-  - `dbt_source_freshness`: Check when source data was last updated
-  - `dbt_parse`: Parse and validate dbt project syntax
+##### Dataform Integration (15 tools)
 
-- **PySpark/Dataproc Integration (9 tools)**
-  - `create_dataproc_cluster`: Create a new Dataproc cluster
-  - `list_dataproc_clusters`: List all clusters in a region
-  - `get_dataproc_cluster_details`: Get detailed cluster information
-  - `delete_dataproc_cluster`: Delete a cluster
-  - `submit_pyspark_job`: Submit PySpark job to a cluster (file must be in GCS)
-  - `check_dataproc_job_status`: Check job execution status
-  - `list_dataproc_jobs`: List jobs (optionally filtered by type or cluster)
-  - `create_dataproc_serverless_batch`: Create serverless PySpark batch (no cluster needed)
-  - `check_dataproc_serverless_batch_status`: Check serverless batch status
+| Tool | Description |
+|------|-------------|
+| `read_file_from_dataform` | Read files from Dataform workspace |
+| `write_file_to_dataform` | Write/modify SQLX files in Dataform workspace |
+| `compile_dataform` | Compile pipeline and view DAG structure |
+| `get_dataform_execution_logs` | Get execution logs from workflow runs |
+| `search_files_in_dataform` | Search files in Dataform workspace |
+| `delete_file_from_dataform` | Delete files from Dataform workspace |
+| `get_dataform_repo_link` | Get repository link for Dataform workspace |
+| `execute_dataform_workflow` | Execute workflow by name |
+| `execute_dataform_by_tags` | Execute actions filtered by tags (AND logic) |
+| `read_workflow_settings` | Read workflow configuration and settings |
+| `get_workflow_status` | Check workflow execution status and details |
+| `monitor_workflow_health` | Monitor workflow execution health over time (success rate, duration, trends) |
+| `get_failed_workflows` | Get list of failed workflows with error details |
+| `check_pipeline_health` | Check overall pipeline health status and get recommendations |
+| `generate_pipeline_documentation` | Automatically generate comprehensive pipeline documentation |
+| `analyze_assertion_results` | Analyze data quality assertion results from workflow executions |
+| `check_data_quality_anomalies` | Detect data quality issues and trends over time |
 
-- **BigQuery Tools (9 tools)**
-  - `sample_table_data_tool`: View table data
-  - `bigquery_toolset`: SQL queries (via ADK BigQuery toolset)
-  - `analyze_query_performance`: Analyze BigQuery job performance metrics (bytes, slots, cost, duration)
-  - `get_query_execution_plan`: Get detailed query execution plan with bottleneck identification
-  - `estimate_query_cost`: Estimate query cost before execution using dry-run
-  - `check_data_freshness`: Check when tables were last updated and detect stale data
-  - `analyze_bigquery_error`: AI-powered error analysis - Analyze failed BigQuery jobs and get fix suggestions
-  - `find_failed_bigquery_jobs`: Find failed jobs by table, error type, or time period
-  - `suggest_query_optimization`: AI-powered optimization - Get specific optimization suggestions
+##### dbt Integration (14 tools)
 
-- **GitHub Integration (11 tools)**
-  - `read_file_from_github`: Read files from GitHub
-  - `write_file_to_github`: Write files with commit
-  - `create_github_branch`: Create branches
-  - `create_github_pull_request`: Create PRs
-  - `create_github_repository`: Create new GitHub repositories
-  - `delete_github_branch`: Delete branches (useful after merging PRs)
-  - `get_merged_pull_requests`: List merged PRs
-  - `cleanup_merged_branches`: Automatically clean up merged branches
-  - `sync_dataform_to_github`: Sync Dataform → GitHub
-  - `list_github_files`: List files in directories
-  - `get_github_file_history`: View commit history for files
+| Tool | Description |
+|------|-------------|
+| `dbt_run` | Execute dbt models (with selectors, tags, or specific models) |
+| `dbt_test` | Run data quality tests on dbt models |
+| `dbt_compile` | Compile dbt project without executing (validation) |
+| `dbt_build` | Run models and tests in a single operation |
+| `dbt_docs_generate` | Generate dbt documentation (manifest.json, catalog.json) |
+| `dbt_docs_serve` | Serve dbt documentation locally on a web server |
+| `dbt_seed` | Load seed data from CSV files into the warehouse |
+| `dbt_snapshot` | Run snapshots for SCD Type 2 tracking |
+| `dbt_ls` | List dbt resources (models, tests, seeds, etc.) |
+| `dbt_show` | Preview compiled SQL without executing |
+| `dbt_debug` | Debug dbt project and profile configuration |
+| `dbt_deps` | Install dbt package dependencies |
+| `dbt_run_operation` | Execute custom dbt macros |
+| `dbt_source_freshness` | Check when source data was last updated |
+| `dbt_parse` | Parse and validate dbt project syntax |
 
-- **GCS Tools (4 tools)**
-  - `list_bucket_files_tool`: List files in GCS bucket
-  - `read_gcs_file_tool`: Read files from GCS
-  - `validate_bucket_exists_tool`: Check if bucket exists
-  - `validate_file_exists_tool`: Check if file exists in bucket
+##### PySpark/Dataproc Integration (9 tools)
 
-### Total: 62 tools across all platforms
+| Tool | Description |
+|------|-------------|
+| `create_dataproc_cluster` | Create a new Dataproc cluster with configurable settings |
+| `list_dataproc_clusters` | List all clusters in a region |
+| `get_dataproc_cluster_details` | Get detailed cluster information (status, config, nodes) |
+| `delete_dataproc_cluster` | Delete a Dataproc cluster |
+| `submit_pyspark_job` | Submit PySpark job to a cluster (file must be in GCS) |
+| `check_dataproc_job_status` | Check job execution status and details |
+| `list_dataproc_jobs` | List jobs (optionally filtered by type or cluster) |
+| `create_dataproc_serverless_batch` | Create serverless PySpark batch (no cluster management needed) |
+| `check_dataproc_serverless_batch_status` | Check serverless batch execution status |
+
+##### BigQuery Tools (9 tools)
+
+| Tool | Description |
+|------|-------------|
+| `sample_table_data_tool` | View sample data from BigQuery tables |
+| `bigquery_toolset` | SQL queries via ADK BigQuery toolset (read/write operations) |
+| `analyze_query_performance` | Analyze BigQuery job performance metrics (bytes, slots, cost, duration) |
+| `get_query_execution_plan` | Get detailed query execution plan with bottleneck identification |
+| `estimate_query_cost` | Estimate query cost before execution using dry-run |
+| `check_data_freshness` | Check when tables were last updated and detect stale data |
+| `analyze_bigquery_error` | **AI-powered error analysis** - Analyze failed BigQuery jobs and get fix suggestions |
+| `find_failed_bigquery_jobs` | Find failed jobs by table, error type, or time period |
+| `suggest_query_optimization` | **AI-powered optimization** - Get specific optimization suggestions based on query structure |
+
+##### GitHub Integration (11 tools)
+
+| Tool | Description |
+|------|-------------|
+| `read_file_from_github` | Read files from GitHub repository |
+| `write_file_to_github` | Write files to GitHub with commit message |
+| `create_github_branch` | Create new branches in GitHub repository |
+| `create_github_pull_request` | Create pull requests for code review |
+| `create_github_repository` | Create new GitHub repositories |
+| `delete_github_branch` | Delete branches (useful after merging PRs) |
+| `get_merged_pull_requests` | List merged pull requests |
+| `cleanup_merged_branches` | Automatically clean up merged feature branches |
+| `sync_dataform_to_github` | Sync Dataform workspace files to GitHub |
+| `list_github_files` | List files in GitHub repository directories |
+| `get_github_file_history` | View commit history for specific files |
+
+##### GCS Tools (4 tools)
+
+| Tool | Description |
+|------|-------------|
+| `list_bucket_files_tool` | List files in GCS bucket |
+| `read_gcs_file_tool` | Read files from GCS bucket |
+| `validate_bucket_exists_tool` | Check if GCS bucket exists |
+| `validate_file_exists_tool` | Check if file exists in GCS bucket |
+
+**Total: 62 tools across 6 platforms** (Dataform, dbt, Dataproc, BigQuery, GitHub, GCS)
 
 [1.1.0]: https://github.com/david-leadtech/data-engineering-copilot/releases/tag/v1.1.0
 [1.0.0]: https://github.com/david-leadtech/data-engineering-copilot/releases/tag/v1.0.0
