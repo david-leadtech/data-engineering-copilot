@@ -29,8 +29,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `MCP_DOCUMENTATION.md`: Full MCP setup guide with troubleshooting
   - `TOOLS_REFERENCE.md`: Detailed reference for all 65 tools with parameters and examples
   - `QUICK_START.md`: Step-by-step server startup guide
-  - `PLTV_CAPABILITIES_ANALYSIS.md`: Analysis of copilot capabilities for PLTV pipeline
-  - `PLTV_MIGRATION_GUIDE.md`: Guide for using copilot with PLTV pipeline
 
 - **Startup Scripts**
   - `scripts/start_api_server.sh`: Start REST API server
