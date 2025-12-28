@@ -245,7 +245,7 @@ User: "Execute all staging tables"
 
 Agent:
 1. execute_dataform_by_tags(['staging', 'silver'])
-   - Executes only actions with BOTH 'pltv' AND 'staging' tags
+   - Executes only actions with BOTH 'staging' AND 'silver' tags
 ```
 
 **Tag Filtering Logic:**
