@@ -28,6 +28,9 @@ from .dataform_github_agent.bigquery_tools import (
     get_query_execution_plan,
     estimate_query_cost,
     check_data_freshness,
+    analyze_bigquery_error,
+    find_failed_bigquery_jobs,
+    suggest_query_optimization,
 )
 from .dataform_github_agent.dataform_tools import (
     compile_dataform,
@@ -135,6 +138,9 @@ root_agent = Agent(
       - Use get_query_execution_plan to get detailed execution plans and identify bottlenecks.
       - Use estimate_query_cost to estimate query costs before execution.
       - Use check_data_freshness to verify when tables were last updated.
+      - Use analyze_bigquery_error to debug failed BigQuery jobs and get fix suggestions.
+      - Use find_failed_bigquery_jobs to find and analyze failed jobs by table, error type, or time period.
+      - Use suggest_query_optimization to get AI-powered optimization suggestions for queries.
       - Use monitor_workflow_health to track workflow execution health over time.
       - Use get_failed_workflows to identify and troubleshoot failed workflows.
       - Use check_pipeline_health to get overall pipeline health status and recommendations.
@@ -212,6 +218,9 @@ root_agent = Agent(
         get_query_execution_plan,
         estimate_query_cost,
         check_data_freshness,
+        analyze_bigquery_error,
+        find_failed_bigquery_jobs,
+        suggest_query_optimization,
         validate_bucket_exists_tool,
         validate_file_exists_tool,
         list_bucket_files_tool,

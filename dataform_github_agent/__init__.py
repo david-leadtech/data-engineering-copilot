@@ -41,6 +41,10 @@ __all__ = [
     'get_query_execution_plan',
     'estimate_query_cost',
     'check_data_freshness',
+    # BigQuery debugging and error analysis tools
+    'analyze_bigquery_error',
+    'find_failed_bigquery_jobs',
+    'suggest_query_optimization',
     # Dataform monitoring and quality tools
     'monitor_workflow_health',
     'get_failed_workflows',

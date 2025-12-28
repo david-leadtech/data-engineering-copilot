@@ -1,5 +1,8 @@
 # 🤖 Dataform GitHub Agent
 
+[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/david-leadtech/dataform-github-agent/releases)
+[![License](https://img.shields.io/badge/license-Apache%202.0-green.svg)](LICENSE)
+
 **AI-powered data engineering agent** that helps you build and manage data pipelines across multiple platforms:
 
 - ✅ **Dataform**: Create, modify, compile, and execute Dataform SQLX pipelines
@@ -210,6 +213,42 @@ Agent:
    - Creates comprehensive documentation
 ```
 
+### Example 10: Debug BigQuery memory error (PLTV pipeline)
+
+```
+User: "The PLTV pipeline failed with a memory error, job ID abc123"
+
+Agent:
+1. analyze_bigquery_error('abc123')
+   - Identifies error type: "memory_exhaustion"
+   - Explains root cause: "Query consumed 100% of available memory"
+   - Suggests fixes:
+     * Break query into smaller stages (use Dataform incremental tables)
+     * Add date filters to reduce data volume
+     * Optimize JOINs
+     * Split complex CTEs into separate materialized tables
+2. suggest_query_optimization(query='...', error_message='Resources exceeded...')
+   - Provides specific optimization recommendations
+   - Categorizes by priority (high/medium/low)
+```
+
+### Example 11: Find and analyze failed jobs
+
+```
+User: "Find all failed jobs for ltv_dimensions table in the last 7 days"
+
+Agent:
+1. find_failed_bigquery_jobs(
+     table_name='ltv_dimensions',
+     days=7,
+     limit=20
+   )
+   - Lists all failed jobs with error details
+   - Shows error messages, reasons, and locations
+2. For each failed job, analyze_bigquery_error(job_id='...')
+   - Provides detailed analysis and fix suggestions
+```
+
 ## 🛠️ Available Tools
 
 ### Dataform (15 tools)
@@ -257,13 +296,16 @@ Agent:
 - `create_dataproc_serverless_batch`: Create serverless PySpark batch (no cluster needed)
 - `check_dataproc_serverless_batch_status`: Check serverless batch status
 
-### BigQuery (6 tools)
+### BigQuery (9 tools)
 - `sample_table_data_tool`: View table data
 - `bigquery_toolset`: SQL queries (via ADK BigQuery toolset)
 - `analyze_query_performance`: Analyze BigQuery job performance metrics (bytes, slots, cost, duration)
 - `get_query_execution_plan`: Get detailed query execution plan with bottleneck identification
 - `estimate_query_cost`: Estimate query cost before execution using dry-run
 - `check_data_freshness`: Check when tables were last updated and detect stale data
+- `analyze_bigquery_error`: **AI-powered error analysis** - Analyze failed BigQuery jobs and get fix suggestions (memory errors, timeouts, permissions, etc.)
+- `find_failed_bigquery_jobs`: Find failed jobs by table, error type, or time period (perfect for troubleshooting pipeline failures)
+- `suggest_query_optimization`: **AI-powered optimization** - Get specific optimization suggestions based on query structure and error context
 
 ### GitHub (11 tools)
 - `read_file_from_github`: Read files from GitHub
@@ -284,7 +326,7 @@ Agent:
 - `validate_bucket_exists_tool`: Check if bucket exists
 - `validate_file_exists_tool`: Check if file exists in bucket
 
-**Total: 59 tools** across all platforms
+**Total: 62 tools** across all platforms
 
 ## ✅ Capabilities
 
@@ -324,6 +366,9 @@ Agent:
 - Get detailed query execution plans and identify bottlenecks
 - Estimate query costs before execution
 - Check data freshness and detect stale data
+- **AI-powered error analysis**: Automatically analyze failed BigQuery jobs and get fix suggestions
+- **Find failed jobs**: Search failed jobs by table, error type, or time period
+- **Query optimization suggestions**: Get AI-powered optimization recommendations based on query structure and errors
 - Monitor workflow health and track success rates over time
 - Identify and troubleshoot failed workflows
 - Check overall pipeline health with recommendations
@@ -354,6 +399,31 @@ The agent is a **powerful assistant** that excels at:
 - Automating monitoring and documentation
 
 **Best Use Case:** The agent works best as a **copilot** that handles the mechanical aspects of data engineering, allowing data engineers to focus on design, optimization, and strategic problem-solving.
+
+## 🚀 Releases
+
+This project uses [Semantic Versioning](https://semver.org/). See [RELEASES.md](RELEASES.md) for release management.
+
+**Current Version:** `1.0.0`
+
+**Latest Release:** [v1.0.0](https://github.com/david-leadtech/dataform-github-agent/releases/latest)
+
+**Changelog:** [CHANGELOG.md](CHANGELOG.md)
+
+### Creating a Release
+
+```bash
+# Patch release (1.0.0 -> 1.0.1)
+./scripts/release.sh patch
+
+# Minor release (1.0.0 -> 1.1.0)
+./scripts/release.sh minor
+
+# Major release (1.0.0 -> 2.0.0)
+./scripts/release.sh major
+```
+
+See [RELEASES.md](RELEASES.md) for detailed instructions.
 
 ## 📚 Additional Resources
 

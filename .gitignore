@@ -30,3 +30,6 @@ Thumbs.db
 # Logs
 *.log
 
+# Version file (keep it, but ignore if accidentally modified)
+# VERSION
+

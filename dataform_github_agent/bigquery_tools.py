@@ -525,6 +525,397 @@ def estimate_query_cost(query: str, dry_run: bool = True) -> Dict[str, Any]:
 
 
 @agent_tool
+def analyze_bigquery_error(
+    job_id: str,
+    include_suggestions: bool = True,
+) -> Dict[str, Any]:
+  """Analyze a failed BigQuery job and provide debugging insights and fix suggestions.
+
+  This tool is specifically designed for troubleshooting complex pipeline failures,
+  like memory errors, timeout issues, and other BigQuery execution problems.
+
+  Args:
+      job_id (str): The BigQuery job ID to analyze (format: project:location.job_id or just job_id).
+      include_suggestions (bool): Whether to include AI-powered fix suggestions (default: True).
+
+  Returns:
+      Dict[str, Any]: Error analysis including error type, root cause, and suggested fixes.
+  """
+  client = get_bigquery_client()
+  try:
+    # Handle different job_id formats
+    if ':' in job_id and '.' in job_id:
+      job = client.get_job(job_id)
+    else:
+      job = client.get_job(job_id, location=config.location)
+
+    if not job.error_result:
+      return {
+          "status": "error",
+          "error_message": f"Job {job_id} did not fail or has no error information",
+      }
+
+    error_result = job.error_result
+    error_message = error_result.get("message", "")
+    error_reason = error_result.get("reason", "")
+    error_location = error_result.get("location", "")
+
+    # Extract performance metrics if available
+    total_bytes = job.total_bytes_processed or 0
+    total_slot_ms = job.total_slot_ms or 0
+    duration_seconds = None
+    if job.started and job.ended:
+      duration_seconds = (job.ended - job.started).total_seconds()
+
+    # Classify error type
+    error_type = "unknown"
+    root_cause = None
+    suggestions = []
+
+    # Memory errors
+    if "Resources exceeded" in error_message or "memory" in error_message.lower() or "100% of limit" in error_message:
+      error_type = "memory_exhaustion"
+      root_cause = "Query consumed 100% of available memory. Common causes: large JOINs, complex aggregations, window functions, or processing too much data at once."
+      suggestions = [
+          "Break the query into smaller stages (use Dataform incremental tables)",
+          "Add date filters to reduce data volume (e.g., last 3 days instead of full history)",
+          "Optimize JOINs: ensure proper indexes, use smaller tables first",
+          "Consider using incremental processing instead of full refresh",
+          "Review query execution plan to identify memory-intensive operations",
+          "Split complex CTEs into separate materialized tables",
+      ]
+
+    # Timeout errors
+    elif "timeout" in error_message.lower() or "deadline" in error_message.lower():
+      error_type = "timeout"
+      root_cause = "Query exceeded maximum execution time."
+      suggestions = [
+          "Break query into smaller chunks",
+          "Add more aggressive filters to reduce data volume",
+          "Use incremental processing",
+          "Consider using scheduled queries with longer timeout",
+      ]
+
+    # Permission errors
+    elif "Access Denied" in error_message or "permission" in error_message.lower():
+      error_type = "permission_error"
+      root_cause = "Insufficient permissions to access resources."
+      suggestions = [
+          "Check IAM permissions for the service account",
+          "Verify dataset and table access permissions",
+          "Ensure the service account has BigQuery Data Editor role",
+      ]
+
+    # Table not found
+    elif "Not found" in error_message or "does not exist" in error_message.lower():
+      error_type = "table_not_found"
+      root_cause = "Referenced table or dataset does not exist."
+      suggestions = [
+          "Verify table name and dataset are correct",
+          "Check if table exists: SELECT * FROM `project.dataset.table` LIMIT 1",
+          "Ensure table was created before this query runs",
+          "Check for typos in table names",
+      ]
+
+    # Syntax errors
+    elif "Syntax error" in error_message or "Invalid" in error_message:
+      error_type = "syntax_error"
+      root_cause = "SQL syntax error in the query."
+      suggestions = [
+          f"Check SQL syntax at location: {error_location}",
+          "Review the query for missing commas, parentheses, or quotes",
+          "Validate SQL using BigQuery's query validator",
+      ]
+
+    # Slot exhaustion
+    elif "slot" in error_message.lower() and ("exceeded" in error_message.lower() or "unavailable" in error_message.lower()):
+      error_type = "slot_exhaustion"
+      root_cause = "Insufficient BigQuery slots available."
+      suggestions = [
+          "Wait for other queries to complete",
+          "Use reservation with more slots",
+          "Optimize query to use fewer slots",
+          "Schedule query during off-peak hours",
+      ]
+
+    # Generic error - provide general suggestions
+    else:
+      error_type = "other_error"
+      root_cause = "Unknown error type. Review error message for details."
+      suggestions = [
+          "Review the full error message for specific details",
+          "Check BigQuery job logs in Cloud Logging",
+          "Verify query syntax and table references",
+          "Check if related tables have recent data",
+      ]
+
+    # Get query preview if available
+    query_preview = None
+    if isinstance(job, bigquery.QueryJob) and job.query:
+      query_preview = job.query[:500]  # First 500 chars
+
+    # Build response
+    result = {
+        "status": "success",
+        "job_id": job_id,
+        "error_analysis": {
+            "error_type": error_type,
+            "error_reason": error_reason,
+            "error_message": error_message,
+            "error_location": error_location,
+            "root_cause": root_cause,
+        },
+        "job_metrics": {
+            "total_bytes_processed": total_bytes,
+            "total_bytes_processed_tb": round(total_bytes / (1024 ** 4), 4),
+            "total_slot_ms": total_slot_ms,
+            "duration_seconds": round(duration_seconds, 2) if duration_seconds else None,
+            "job_state": job.state,
+        },
+        "query_preview": query_preview,
+    }
+
+    if include_suggestions and suggestions:
+      result["suggested_fixes"] = suggestions
+      result["next_steps"] = [
+          "Review the error analysis above",
+          "Apply the most relevant suggested fix",
+          "Test the fix with a small data sample first",
+          "Monitor the next execution to verify the fix worked",
+      ]
+
+    return result
+
+  except Exception as e:
+    return {
+        "status": "error",
+        "error_message": f"Error analyzing BigQuery error: {e}",
+    }
+
+
+@agent_tool
+def find_failed_bigquery_jobs(
+    table_name: Optional[str] = None,
+    error_type: Optional[str] = None,
+    days: int = 7,
+    limit: int = 20,
+) -> Dict[str, Any]:
+  """Find failed BigQuery jobs matching specific criteria.
+
+  Useful for troubleshooting pipeline failures and identifying patterns.
+
+  Args:
+      table_name (Optional[str]): Filter by table name (e.g., 'ltv_dimensions_e2e_calculation_looker').
+      error_type (Optional[str]): Filter by error type ('memory', 'timeout', 'permission', etc.).
+      days (int): Number of days to look back (default: 7).
+      limit (int): Maximum number of jobs to return (default: 20).
+
+  Returns:
+      Dict[str, Any]: List of failed jobs with error details.
+  """
+  client = get_bigquery_client()
+  try:
+    from datetime import datetime, timedelta
+
+    time_threshold = datetime.utcnow() - timedelta(days=days)
+
+    # Build query to find failed jobs
+    query = f"""
+    SELECT
+        job_id,
+        creation_time,
+        state,
+        job_type,
+        error_result.message as error_message,
+        error_result.reason as error_reason,
+        error_result.location as error_location,
+        total_bytes_processed,
+        total_slot_ms,
+        TIMESTAMP_DIFF(end_time, start_time, MINUTE) as duration_minutes,
+        destination_table.table_id as destination_table,
+        destination_table.dataset_id as destination_dataset,
+        LEFT(query, 500) as query_preview
+    FROM `{config.project_id}.region-{config.location}.INFORMATION_SCHEMA.JOBS_BY_PROJECT`
+    WHERE state = 'DONE'
+      AND error_result IS NOT NULL
+      AND creation_time >= TIMESTAMP('{time_threshold.strftime("%Y-%m-%d %H:%M:%S")}')
+    """
+
+    # Add filters
+    conditions = []
+    if table_name:
+      conditions.append(f"(destination_table.table_id LIKE '%{table_name}%' OR query LIKE '%{table_name}%')")
+
+    if error_type:
+      error_patterns = {
+          "memory": "error_result.message LIKE '%Resources exceeded%' OR error_result.message LIKE '%memory%'",
+          "timeout": "error_result.message LIKE '%timeout%' OR error_result.message LIKE '%deadline%'",
+          "permission": "error_result.message LIKE '%Access Denied%' OR error_result.message LIKE '%permission%'",
+          "not_found": "error_result.message LIKE '%Not found%' OR error_result.message LIKE '%does not exist%'",
+      }
+      if error_type.lower() in error_patterns:
+        conditions.append(f"({error_patterns[error_type.lower()]})")
+
+    if conditions:
+      query += " AND " + " AND ".join(conditions)
+
+    query += f" ORDER BY creation_time DESC LIMIT {limit}"
+
+    query_job = client.query(query)
+    results = query_job.result()
+
+    failed_jobs = []
+    for row in results:
+      job_info = {
+          "job_id": row.job_id,
+          "creation_time": row.creation_time.isoformat() if row.creation_time else None,
+          "state": row.state,
+          "job_type": row.job_type,
+          "error_message": row.error_message,
+          "error_reason": row.error_reason,
+          "error_location": row.error_location,
+          "destination_table": f"{row.destination_dataset}.{row.destination_table}" if row.destination_table else None,
+          "duration_minutes": row.duration_minutes,
+          "total_bytes_processed": row.total_bytes_processed,
+          "query_preview": row.query_preview,
+      }
+      failed_jobs.append(job_info)
+
+    return {
+        "status": "success",
+        "failed_jobs": failed_jobs,
+        "count": len(failed_jobs),
+        "filters": {
+            "table_name": table_name,
+            "error_type": error_type,
+            "days": days,
+        },
+    }
+
+  except Exception as e:
+    return {
+        "status": "error",
+        "error_message": f"Error finding failed jobs: {e}",
+        "failed_jobs": [],
+    }
+
+
+@agent_tool
+def suggest_query_optimization(
+    query: str,
+    error_message: Optional[str] = None,
+) -> Dict[str, Any]:
+  """Analyze a BigQuery query and suggest optimizations based on the query structure and optional error context.
+
+  Uses AI-powered analysis to provide specific optimization recommendations.
+
+  Args:
+      query (str): The SQL query to analyze.
+      error_message (Optional[str]): Optional error message from a failed execution to provide context-aware suggestions.
+
+  Returns:
+      Dict[str, Any]: Optimization suggestions categorized by type and priority.
+  """
+  try:
+    # First, do a dry run to get query metrics
+    client = get_bigquery_client()
+    job_config = bigquery.QueryJobConfig(dry_run=True, use_query_cache=False)
+    query_job = client.query(query, job_config=job_config)
+
+    total_bytes = query_job.total_bytes_processed or 0
+    total_bytes_tb = total_bytes / (1024 ** 4)
+
+    # Analyze query structure
+    query_upper = query.upper()
+    suggestions = []
+    high_priority = []
+    medium_priority = []
+    low_priority = []
+
+    # Check for common issues
+    if "SELECT *" in query_upper:
+      high_priority.append({
+          "issue": "SELECT * usage",
+          "impact": "High - scans all columns unnecessarily",
+          "suggestion": "Specify only needed columns to reduce bytes scanned",
+      })
+
+    # Check for missing WHERE clauses on large tables
+    if total_bytes_tb > 0.1:  # > 100 GB
+      if "WHERE" not in query_upper or ("WHERE" in query_upper and "DATE(" not in query_upper and "TIMESTAMP(" not in query_upper):
+        high_priority.append({
+            "issue": "Large data scan without date filters",
+            "impact": "High - processing too much data",
+            "suggestion": "Add date filters to limit data volume (e.g., WHERE date >= DATE_SUB(CURRENT_DATE(), INTERVAL 3 DAY))",
+        })
+
+    # Check for complex JOINs
+    join_count = query_upper.count("JOIN")
+    if join_count > 5:
+      high_priority.append({
+          "issue": f"Multiple JOINs ({join_count} JOINs detected)",
+          "impact": "High - complex JOINs can cause memory issues",
+          "suggestion": "Consider breaking into multiple stages with materialized intermediate tables",
+      })
+
+    # Check for window functions
+    if "OVER (" in query_upper or "ROW_NUMBER()" in query_upper or "RANK()" in query_upper:
+      medium_priority.append({
+          "issue": "Window functions detected",
+          "impact": "Medium - window functions can be memory-intensive",
+          "suggestion": "Ensure window functions are properly partitioned. Consider materializing intermediate results.",
+      })
+
+    # Check for GROUP BY with many columns
+    if "GROUP BY" in query_upper:
+      group_by_match = query_upper.find("GROUP BY")
+      if group_by_match != -1:
+        group_by_section = query_upper[group_by_match:group_by_match + 200]
+        if group_by_section.count(",") > 5:
+          medium_priority.append({
+              "issue": "GROUP BY with many columns",
+              "impact": "Medium - high cardinality can increase memory usage",
+              "suggestion": "Review if all GROUP BY columns are necessary. Consider pre-aggregating some dimensions.",
+          })
+
+    # Error-specific suggestions
+    if error_message:
+      if "Resources exceeded" in error_message or "memory" in error_message.lower():
+        high_priority.append({
+            "issue": "Memory error detected",
+            "impact": "Critical - query failed due to memory",
+            "suggestion": "Break query into smaller stages. Use Dataform incremental tables to materialize intermediate results.",
+        })
+
+    # Build response
+    all_suggestions = high_priority + medium_priority + low_priority
+
+    return {
+        "status": "success",
+        "query_analysis": {
+            "estimated_bytes_tb": round(total_bytes_tb, 4),
+            "estimated_cost_usd": round(total_bytes_tb * 5.0, 4),
+            "join_count": join_count,
+            "has_window_functions": "OVER (" in query_upper or "ROW_NUMBER()" in query_upper,
+            "has_group_by": "GROUP BY" in query_upper,
+        },
+        "optimization_suggestions": {
+            "high_priority": high_priority if high_priority else None,
+            "medium_priority": medium_priority if medium_priority else None,
+            "low_priority": low_priority if low_priority else None,
+        },
+        "total_suggestions": len(all_suggestions),
+        "error_context": error_message if error_message else None,
+    }
+
+  except Exception as e:
+    return {
+        "status": "error",
+        "error_message": f"Error analyzing query: {e}",
+    }
+
+
+@agent_tool
 def check_data_freshness(dataset_id: str, table_id: str, freshness_threshold_hours: Optional[int] = 24) -> Dict[str, Any]:
   """Check data freshness for a BigQuery table.
 
